@@ -12,9 +12,28 @@ class SearchViewController: UITableViewController {
     @IBOutlet weak var searchBar: UISearchBar!
     var searchWork: DispatchWorkItem?
     
+    let queue: DispatchQueue = .global()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         searchBar.delegate = self
+        
+        let work = DispatchWorkItem {
+            print("Start work ->", Date())
+            sleep(10)
+            print("Finished work ->", Date())
+        }
+
+        let work2 = DispatchWorkItem {
+            print("Start work 2 ->", Date())
+            sleep(5)
+            print("Finished work 2 ->", Date())
+        }
+
+        queue.asyncAfter(deadline: .now(), execute: work)
+        queue.asyncAfter(deadline: .now(), execute: work2)
+         work2.wait() // Wait until work has to be finished
+         print("Finished") // Will print after work finished
     }
     
     @IBAction func searchButtonTapped(_ sender: UIButton) {
@@ -33,8 +52,10 @@ extension SearchViewController: UISearchBarDelegate {
             print("Hello, \(string)!")
         }
         
+        
         work.notify(queue: .main) {
             print("Search finished!")
+            // Perform another task
         }
         searchWork = work
         DispatchQueue.global().asyncAfter(deadline: .now() + 2, execute: work)
